@@ -1,0 +1,103 @@
+Unit Testing Report
+
+_Parking System - Unit Testing and Mutation Analysis_
+
+**Name: A M Ashfak Rahman**
+
+**ID: 0112230178**
+
+# A) Test Case List
+
+| **Test ID** | **Class.Method under test**                              | **Why this test?**                                                                                   | **Verdict** | **Comments / Observations**                                                                                                                      |
+| ----------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| TC-01       | Vehicle.toString()                                       | Ensure the text representation includes the vehicle ID, type and wallet balance.                     | **PASS**    | The current implementation has the information as it is expected.                                                                                |
+| TC-02       | Vehicle.&lt;init&gt;(int, VehicleType, double)           | Verify that the constructor based on balance creates a wallet with the initial balance expected.     | **PASS**    | vehicleBalance = pBalance; // equal to balance passed to constructor.                                                                            |
+| TC-03       | Vehicle.&lt;init&gt;(int, VehicleType, Wallet) / getters | Check constructor values ID, vehicle type and wallet are stored correctly.                           | **PASS**    | Getters properly return the stored values.                                                                                                       |
+| TC-04       | Vehicle.getBalance()                                     | Returns vehicle balance to and from wallet                                                           | **PASS**    | Returned balance matches wallet balance.                                                                                                         |
+| TC-05       | Wallet.&lt;init&gt;() / getBalance()                     | Verify that the default wallet has a zero balance.                                                   | **PASS**    | The default balance is zero.                                                                                                                     |
+| TC-06       | Wallet.addFunds()                                        | Test add positive amount increases balance correctly.                                                | **PASS**    | The balance is rising as predicted.                                                                                                              |
+| TC-07       | Wallet.deductFunds()                                     | Check add positive amount increases balance correctly.                                               | **PASS**    | Reduces balance by the requested amount.                                                                                                         |
+| TC-08       | Wallet.&lt;init&gt;(double)                              | Verify the balance is correctly reduced when a correct amount is deducted.                           | **FAIL**    | Expected an IllegalArgumentException but none was thrown.                                                                                        |
+| TC-09       | Wallet.deductFunds()                                     | Invalid negative start balance.                                                                      | **PASS**    | Exact balance deduction is accepted.                                                                                                             |
+| TC-10       | Wallet.transferFunds()                                   | Reject Boundary case: deduction allowed only in case requested amount is equal to available balance. | **FAIL**    | Assert balance failed on null transfer attempt. Money was not conserved as expected.                                                             |
+| TC-11       | ParkingSystem.cancelBooking()                            | There shall be no cancellation and refund of a booking that has been completed.                      | **FAIL**    | Booking completed may still affect refund/payment status Balance assertion failed.                                                               |
+| TC-12       | ParkingSystem.cancelBooking() / ParkingSystem.book()     | Once a booking is cancelled the same slot/time should be available to book again.                    | **ERROR**   | Rebooking throws IllegalArgumentException Parking slot is not compatible or not available for given time.                                        |
+| TC-13       | ParkingSystem.book()                                     | Check 90 minutes is billed as 1.5 hours instead of truncated to one full hour.                       | **FAIL**    | Assertion on price failed; behaviour consistent with truncating duration/price.                                                                  |
+| TC-14       | ParkingSystem.book() pricing                             | Confirm a handicapped slot has a 1.2x slot multiplier (20% more).                                    | **PASS**    | Slot price increase is 20% and it's correctly applied.                                                                                           |
+| TC-15       | ParkingSystem.book() pricing                             | Confirm that a microcar has a vehicle-rate multiplier of 1.5×.                                       | **PASS**    | Right Microcar Price Multiplier.                                                                                                                 |
+| TC-16       | ParkingSystem.book()                                     | Reject the booking as vehicle wallet does not have sufficient money.                                 | **PASS**    | As expected, insufficient funds are rejected.                                                                                                    |
+| TC-17       | ParkingSystem.getInstance()                              | Check that singleton returns the same object if called multiple times.                               | **PASS**    | Subsequent calls return the same instance.                                                                                                       |
+| TC-18       | ParkingSystem.addVehicle() / addParkingSlot()            | System stores proof of vehicles and parking slots added.                                             | **PASS**    | Both objects are successfully kept.                                                                                                              |
+| TC-19       | ParkingSystem.book()                                     | Cancel a booking if the chosen slot is not compatible with the vehicle.                              | **PASS**    | If a slot is not compatible, it is rejected and the booking is not accepted.                                                                     |
+| TC-20       | ParkingSystem.book() pricing                             | Motorcycle verification is charged at 0.5x the base vehicle rate.                                    | **PASS**    | Motorcycle price multiplier is right.                                                                                                            |
+| TC-21       | ParkingSystem.completeBooking()                          | A cancelled booking will not be executed nor the slot paid later.                                    | **FAIL**    | Slot/payment assertion failed. Cancelled state is not fully protected against completion processing.                                             |
+| TC-22       | ParkingSystem.book()                                     | Boundary case: allow a valid booking less than 1 hour and charge a positive fractional amount.       | **ERROR**   | InvalidAmountException: Invalid amount . Amount has to be positive. This means that the amount calculated was zero prior to the wallet transfer. |
+| TC-23       | ParkingSystem.book()                                     | If a payment fails, the system will not create a booking record.                                     | **FAIL**    | The operation is not atomic , the booking remains around after payment fails .                                                                   |
+| TC-24       | ParkingSystem.completeBooking()                          | The same parking slot should not be paid twice for the same booking.                                 | **FAIL**    | Completion is not idempotent: taking the completion again changes the slot balance again.                                                        |
+| TC-25       | ParkingSystem.book() pricing                             | Check a large slot applies 1.5x slot multiplier (50% more).                                          | **PASS**    | Large slot multiplier is right.                                                                                                                  |
+| TC-26       | ParkingSlot.deactivate() / activate()                    | Deactivate deactivates a slot and activate activates a slot.                                         | **PASS**    | Active state changes properly in both directions.                                                                                                |
+| TC-27       | ParkingSlot.isCompatible()                               | An inactive slot should not be considered as compatible/usable.                                      | **PASS**    | Inactive slot rejected correctly.                                                                                                                |
+| TC-28       | ParkingSlot.&lt;init&gt;() / getters                     | Check a new slot is active, has no bookings and has a zero wallet                                    | **PASS**    | The initial slot state is right.                                                                                                                 |
+| TC-29       | ParkingSlot.isAvailable()                                | Check there is a new slot available in the requested time with no bookings.                          | **PASS**    | Empty slot report is available.                                                                                                                  |
+| TC-30       | ParkingSlot.isAvailable()                                | A cancelled booking should not continue to block the same time range.                                | **FAIL**    | Availability is still false after cancellation.                                                                                                  |
+| TC-31       | ParkingSlot.isCompatible()                               | Make sure a truck doesn't fit the tested slot types.                                                 | **PASS**    | Test rejects truck as anticipated.                                                                                                               |
+| TC-32       | Booking.&lt;init&gt;()                                   | Reject booking with negative amount .                                                                | **FAIL**    | Expected IllegalArgumentException but got no exception.                                                                                          |
+| TC-33       | Booking.&lt;init&gt;() / getStatus()                     | Validate the newly created booking is in the ACTIVE state.                                           | **PASS**    | The default booking status is ACTIVE.                                                                                                            |
+| TC-34       | Booking.&lt;init&gt;()                                   | Invalid time range: end time is earlier than start time.                                             | **FAIL**    | An exception was expected, but no exception was thrown.                                                                                          |
+| TC-35       | Booking.completeBooking()                                | completion status changes from ACTIVE to COMPLETED                                                   | **PASS**    | Proper status. Changes.                                                                                                                          |
+| TC-36       | Booking.cancelBooking()                                  | Change cheque cancellation status from ACTIVE to CANCELLED.                                          | **PASS**    | Status changes properly.                                                                                                                         |
+| TC-37       | Booking.toString()                                       | Check booking text for booking ID, amount, and status.                                               | **PASS**    | That's all the information you need, and it's in the string representation.                                                                      |
+| TC-38       | Booking.&lt;init&gt;() / getters                         | Remember to save all of the values that are passed to the constructor.                               | **PASS**    | Constructor fields are correctly stored and returned.                                                                                            |
+
+# B) Defects List
+
+The following defects are consolidated by root cause. A single defect may be exposed by more than one failing/error test.
+
+| **Defect ID** | **Class.Method**                                 | **Description**                                                                                                                                                                 | **Suggested Fix**                                                                                                                                                 |
+| ------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DEF-01        | Wallet.&lt;init&gt;(double)                      | Initial balances may be negative. constructorShouldRejectNegativeBalance() expected IllegalArgumentException but no exception was thrown.                                       | Validate the initial balance in the constructor and throw IllegalArgumentException when it is negative.                                                           |
+| DEF-02        | Wallet.transferFunds()                           | If you try to transfer to a null wallet, you will change/lose the sender's money instead of leaving the balance unchanged.                                                      | Validate the destination before deducting any money. Reject null first, then perform deduction and deposit as one operation.                                      |
+| DEF-03        | ParkingSystem.cancelBooking()                    | Cancellation/refund logic can still process a booking that is already completed.                                                                                                | Only allow cancellation when the booking status is ACTIVE; otherwise reject or return without changing money/status.                                              |
+| DEF-04        | ParkingSlot.isAvailable() / booking cancellation | The cancelled booking still occupies the previous time interval . So the direct availability test fails . The rebooking test fails .                                            | When checking overlap, ignore bookings whose status is CANCELLED, or remove cancelled bookings from the slot's active booking schedule.                           |
+| DEF-05        | ParkingSystem.book() pricing                     | Fractional hours are not treated properly. The price for 90 minute booking is wrong and a booking less than an hour is zero amount which triggers InvalidAmountException later. | Calculate duration using minutes/seconds and convert to fractional hours using floating-point arithmetic, e.g. minutes / 60.0, before applying rates/multipliers. |
+| DEF-06        | ParkingSystem.completeBooking()                  | A cancelled booking can still go through completion payment logic and pay for parking slot.                                                                                     | Require booking status ACTIVE before completion; cancelled/completed bookings must not be settled again.                                                          |
+| DEF-07        | ParkingSystem.book()                             | When a payment fails, a booking can be left saved in the system.                                                                                                                | Complete payment validation/transfer before permanently adding the booking, or roll back the booking if payment fails.                                            |
+| DEF-08        | ParkingSystem.completeBooking()                  | Completing the same booking twice pays the slot multiple times.                                                                                                                 | Make completion idempotent by processing payment only when status is ACTIVE; subsequent calls should not transfer funds again.                                    |
+| DEF-09        | Booking.&lt;init&gt;()                           | Negative amounts are allowed for bookings.                                                                                                                                      | Validate amount >= 0 (or strictly positive if required by the specification) and throw IllegalArgumentException for invalid values.                               |
+| DEF-10        | Booking.&lt;init&gt;()                           | It is possible to create a booking that ends before it starts.                                                                                                                  | Validate that end is strictly after start; throw the project's booking-time exception or another documented runtime exception otherwise.                          |
+
+# C) Mutant Analysis
+
+## Overall mutation score
+
+**Overall PIT mutation score: 5% (4 of 87)**
+
+Line coverage 8 % ( 11/133 ), Test strength: 44% (4/9)
+
+Report created by PIT 1.15.8.
+
+Class breakdown: Wallet.java - 46% lines covered (11 of 24), 27% mutation covered (4 of 15), 44% test strength (4 of 9) ParkingSlot.java – 0% line coverage (0/37), 0% mutation coverage (0/37) ParkingSystem.java 0% line coverage (0 of 72) and 0% mutation coverage (0 of 35). 0/0 test-strength entries for ParkingSlot.java and ParkingSystem.java means no mutants in those classes were covered by tests in this PIT run.
+
+# Final Test Summary
+
+- **Total tests:** 38
+- **Passed:** 26
+- **Failed:** 10
+- **Errors:** 2
+- **Passing rate:** 68.42% (26 / 38)
+- **Non-passing tests:** 31.58% (12 / 38)
+
+## Non-passing tests
+
+1. WalletTest.constructorShouldRejectNegativeBalance() — FAIL
+2. WalletTest.transferFundsToNullShouldNotLoseMoney() — FAIL
+3. ParkingSystemTest.cancelBookingAfterCompleteShouldNotRefund() — FAIL
+4. ParkingSystemTest.cancelledBookingShouldFreeTheSlotAgain() — ERROR
+5. ParkingSystemTest.bookShouldChargeNinetyMinutesAsOneAndHalfHours() — FAIL
+6. ParkingSystemTest.completeBookingAfterCancelShouldNotPaySlot() — FAIL
+7. ParkingSystemTest.bookShouldAllowBookingShorterThanOneHour() — ERROR
+8. ParkingSystemTest.failedPaymentShouldNotLeaveBookingInSystem() — FAIL
+9. ParkingSystemTest.completeBookingTwiceShouldNotPaySlotTwice() — FAIL
+10. ParkingSlotTest.cancelledBookingShouldNotBlockTheSlot() — FAIL
+11. BookingTest.constructorShouldRejectNegativeAmount() — FAIL
+12. BookingTest.constructorShouldRejectEndBeforeStart() — FAIL
